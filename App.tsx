@@ -6,6 +6,7 @@ import {TempoEngine} from './src/engine/TempoEngine';
 import {evaluateTap, HitQuality} from './src/engine/BeatEvaluator';
 import {COLORS} from './src/constants/colors';
 import {BeatIndicator} from './src/components/BeatIndicator';
+import AudioService from './src/services/AudioService';
 
 export default function App() {
   const [engine] = useState(() => new TempoEngine(60));
@@ -18,6 +19,14 @@ export default function App() {
   const [multiplier, setMultiplier] = useState(1);
   const [currentBPM, setCurrentBPM] = useState(60);
 
+  // Initialize audio
+  useEffect(() => {
+    AudioService.init();
+    return () => {
+      AudioService.cleanup();
+    };
+  }, []);
+
   useEffect(() => {
     let animationFrame: number;
 
@@ -29,6 +38,8 @@ export default function App() {
         setBeatCount((count) => count + 1);
         setBeatOccurred(true);
         setTimeout(() => setBeatOccurred(false), 50);
+        // Play metronome click
+        AudioService.playBeat();
       }
 
       animationFrame = requestAnimationFrame(gameLoop);
@@ -75,11 +86,15 @@ export default function App() {
       engine.setBPM(60);
     }
 
-    // Haptic feedback based on hit quality
+    // Haptic and audio feedback based on hit quality
     if (result === 'PERFECT') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      AudioService.playPerfect();
     } else if (result === 'GOOD') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      AudioService.playGood();
+    } else {
+      AudioService.playMiss();
     }
   };
 
