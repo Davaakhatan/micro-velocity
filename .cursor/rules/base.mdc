@@ -1,0 +1,12 @@
+Description: Core project rules and context for the Micro-Velocity mobile game.
+
+Content:
+- This project uses a structured Memory Bank in `memory-bank/`:
+  - Always read `projectbrief.md`, `productContext.md`, `systemPatterns.md`, `techContext.md`, `activeContext.md`, and `progress.md` at the start of any substantial task.
+  - Update `activeContext.md` and `progress.md` after major changes or at the end of a working session.
+- Prioritize:
+  - Maintaining the anti-idle design: faster tapping should never be rewarded over staying on-beat.
+  - Minimalist, non-overwhelming visual and audio feedback.
+  - Preserving the core experience of entering and sustaining a flow state.
+- Keep architecture and tech decisions documented in the Memory Bank as they evolve.
+
