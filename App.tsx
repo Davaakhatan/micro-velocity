@@ -7,6 +7,7 @@ import {evaluateTap, HitQuality} from './src/engine/BeatEvaluator';
 import {COLORS} from './src/constants/colors';
 import {BeatIndicator} from './src/components/BeatIndicator';
 import AudioService from './src/services/AudioService';
+import StorageService from './src/services/StorageService';
 
 export default function App() {
   const [engine] = useState(() => new TempoEngine(60));
@@ -18,10 +19,18 @@ export default function App() {
   const [score, setScore] = useState(0);
   const [multiplier, setMultiplier] = useState(1);
   const [currentBPM, setCurrentBPM] = useState(60);
+  const [highScore, setHighScore] = useState(0);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
 
-  // Initialize audio
+  // Initialize audio and load high score
   useEffect(() => {
     AudioService.init();
+
+    // Load high score
+    StorageService.getStats().then(stats => {
+      setHighScore(stats.highScore);
+    });
+
     return () => {
       AudioService.cleanup();
     };
@@ -77,7 +86,23 @@ export default function App() {
 
       // Add score: PERFECT = 100, GOOD = 50, multiplied
       const basePoints = result === 'PERFECT' ? 100 : 50;
-      setScore((prevScore) => prevScore + basePoints * multiplier);
+      setScore((prevScore) => {
+        const newScore = prevScore + basePoints * multiplier;
+
+        // Check for new high score
+        if (newScore > highScore && !isNewHighScore) {
+          setIsNewHighScore(true);
+          setHighScore(newScore);
+          StorageService.updateHighScore(newScore);
+        }
+
+        return newScore;
+      });
+
+      // Track perfect hits
+      if (result === 'PERFECT') {
+        StorageService.incrementPerfects();
+      }
     } else {
       setStreak(0);
       setMultiplier(1);
@@ -103,8 +128,15 @@ export default function App() {
       <StatusBar style="light" />
       <View style={styles.header}>
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>SCORE</Text>
-          <Text style={styles.statValue}>{score.toLocaleString()}</Text>
+          <Text style={styles.statLabel}>
+            {isNewHighScore ? 'NEW HIGH!' : 'SCORE'}
+          </Text>
+          <Text style={[styles.statValue, isNewHighScore && styles.newHighScore]}>
+            {score.toLocaleString()}
+          </Text>
+          {!isNewHighScore && highScore > 0 && (
+            <Text style={styles.highScoreLabel}>Best: {highScore.toLocaleString()}</Text>
+          )}
         </View>
         <View style={styles.stat}>
           <Text style={styles.statLabel}>BPM</Text>
@@ -176,6 +208,14 @@ const styles = StyleSheet.create({
   },
   bpmActive: {
     color: COLORS.good,
+  },
+  newHighScore: {
+    color: COLORS.perfect,
+  },
+  highScoreLabel: {
+    fontSize: 10,
+    color: COLORS.text.disabled,
+    marginTop: 2,
   },
   tapArea: {
     width: 240,
