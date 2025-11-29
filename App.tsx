@@ -22,6 +22,17 @@ export default function App() {
   const [highScore, setHighScore] = useState(0);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
 
+  const resetGame = () => {
+    setScore(0);
+    setStreak(0);
+    setMultiplier(1);
+    setCurrentBPM(60);
+    setIsNewHighScore(false);
+    setBestStreak(0);
+    setLastHit(null);
+    engine.setBPM(60);
+  };
+
   // Initialize audio and load high score
   useEffect(() => {
     AudioService.init();
@@ -166,6 +177,10 @@ export default function App() {
           </Text>
         )}
         <Text style={styles.beats}>Best Streak: {bestStreak}</Text>
+
+        <Pressable style={styles.resetButton} onPress={resetGame}>
+          <Text style={styles.resetText}>RESTART</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -257,5 +272,19 @@ const styles = StyleSheet.create({
   beats: {
     fontSize: 14,
     color: COLORS.text.disabled,
+  },
+  resetButton: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.text.secondary,
+  },
+  resetText: {
+    color: COLORS.text.secondary,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 1,
   },
 });
